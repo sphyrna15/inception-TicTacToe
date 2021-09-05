@@ -21,11 +21,18 @@ class GameState():
             ["-", "-", "-", "-", "-", "-", "-", "-", "-"]]
         )
 
+        # Track who wins the sub-tic-tac-toes
         self.shellBoard = np.array([
             ["-", "-", "-"],
             ["-", "-", "-"],
             ["-", "-", "-"]]
         )
+        # Temporary 3by3 board to check if a sub-ttt has a winner (see checkSubWin())
+        self.tempBoard = np.array([
+            ["-", "-", "-"],
+            ["-", "-", "-"],
+            ["-", "-", "-"]]
+        ) 
 
         # list all valid indices for each of the 9 sub Tic-Tac-Toes
         self.idx00 = np.array([(0,0), (0,1), (0,2), (1,0), (1,1), (1,2), (2,0), (2,1), (2,2)])
@@ -49,9 +56,19 @@ class GameState():
         freeSquares = []
         for r in range(9):
             for c in range(9):
-                if self.board[r, c] == "-":
+                # note that sub-ttt's with a subwinner have no free squares anymore
+                subloc = self.findSubLocation(r, c)
+                if self.board[r, c] == "-" and self.shellBoard[subloc[0], subloc[1]] == "-":
                     freeSquares.append((r,c))
         return freeSquares
+    
+    """ determine which sub-tic-tac-toe and index is located in """
+    def findSubLocation(self, row, col):
+        for subrow in range(3):
+            for subcol in range(3):
+                for pos in self.sub_indices[subrow, subcol]:
+                    if pos[0] == row and pos[1] == col:
+                        return (subrow, subcol)
 
     """
     Will Return all Squares which can be picked by next player 
@@ -78,5 +95,54 @@ class GameState():
                 loc = self.sub_indices[last_row, last_col][i]
                 if loc[0] == pos[0] and loc[1] == pos[1]:
                     validSquares.append(pos)
+        # If the dictated sub-ttt is full, return all free squares
+        if validSquares == []: 
+            return freeSquares
+        # Otherwise, return valid squares
         return validSquares
+
+    """ 
+    Check if someone has won the game overall (shell tic-tac-toe winner) 
+    or if there are no squares left
+    """
+    def checkGameOver(self):
+
+        # If there are nomore squares left, return GameOver
+        if self.getFreeSquares() == []:
+            return True
+        else:
+            return self.checkWin(self.shellBoard)
+
+    """ Check if a tic-tac-toe cofiguration has a winner """
+    def checkWin(self, board):
+        # Vertical Win 
+        for col in range(3):
+            if board[0,col] == board[1,col] and board[0,col] == board[2,col] and board[0,col]!= "-":
+                return True
+        # Horizontal Win
+        for row in range(3):
+            if board[row,0] == board[row,1] and board[row,0] == board[row,2] and board[row,0]!= "-":
+                return True
+        # Diagonal Win
+        if board[0,0] == board[1,1] and board[0,0] == board[2,2] and board[0,0]!= "-":
+            return True
+        # No Winner
+        return False
+
+    """ Check if current sub-tic-tac-toe has a winner """
+    def checkSubWin(self, dictatingMove): 
+        #the dictating move determines the follow up sub-ttt
+        # Find sub-tic-tac-toe index
+        subrow = dictatingMove[0] % 3
+        subcol = dictatingMove[1] % 3
+        for pos in self.sub_indices[subrow, subcol]:
+            r = pos[0] ; c = pos[1]
+            self.tempBoard[r%3, c%3] = self.board[r,c]
+        # Check if someone has won in this sub-ttt
+        return self.checkWin(self.tempBoard)
+
+        
+
+        
+
 

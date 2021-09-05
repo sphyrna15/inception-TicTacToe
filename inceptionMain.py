@@ -114,7 +114,16 @@ def main():
                     row = location[1] // square_size
                     # check if square is free
                     if (row,col) in validSquares:
-                        gs.board[row, col] = player
+                        gs.board[row, col] = player # Add symbol
+                        # Check if the sub-ttt has now a winner
+                        if gs.moveLog != []:
+                            if gs.checkSubWin(gs.moveLog[-1]): #if yes, update shell-ttt
+                                last_row = gs.moveLog[-1][0] ; last_col = gs.moveLog[-1][1]
+                                gs.shellBoard[last_row%3, last_col%3] = player
+                                print("local winner is player: " + player)
+                        # check if game is over now
+                        gameOver = gs.checkGameOver() #GAME OVER
+                        # append move to moveLog
                         gs.moveLog.append((row,col))
                         # update player only if valid move made
                         if player == "o":
