@@ -97,6 +97,7 @@ def main():
 
     running = True
     gameOver = False # Game is over flag
+    validSquares = gs.getValidSquares()
     selected_sq = () # no square selected initially, tuple (row, col)
     player = "o"
     while running: 
@@ -112,15 +113,18 @@ def main():
                     col = location[0] // square_size # // double divide to get integers
                     row = location[1] // square_size
                     # check if square is free
-                    if gs.board[row, col] == "-":
+                    if (row,col) in validSquares:
                         gs.board[row, col] = player
-
-                #update player
-                if player == "o":
-                    player = "x"
-                else:
-                    player = "o"
+                        gs.moveLog.append((row,col))
+                        # update player only if valid move made
+                        if player == "o":
+                            player = "x"
+                        else:
+                            player = "o"
+                        # get new valid squares
+                        validSquares = gs.getValidSquares()
         
+         
         draw_letters(screen, gs.board)    
         p.display.update()
 
