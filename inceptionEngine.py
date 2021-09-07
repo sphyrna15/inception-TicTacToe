@@ -56,13 +56,16 @@ class GameState():
         freeSquares = []
         for r in range(9):
             for c in range(9):
-                # note that sub-ttt's with a subwinner have no free squares anymore
+                 # note that sub-ttt's with a subwinner have no free squares anymore
                 subloc = self.findSubLocation(r, c)
                 if self.board[r, c] == "-" and self.shellBoard[subloc[0], subloc[1]] == "-":
                     freeSquares.append((r,c))
         return freeSquares
     
-    """ determine which sub-tic-tac-toe and index is located in """
+    """ 
+    determine which sub-tic-tac-toe and index is located in 
+    Not required as long as we set all taken sub-ttt squares to value "t"
+    """
     def findSubLocation(self, row, col):
         for subrow in range(3):
             for subcol in range(3):
@@ -101,6 +104,26 @@ class GameState():
         # Otherwise, return valid squares
         return validSquares
 
+    """
+    Function to Undo the previouse move
+    """
+    def undoMove(self):
+        postSubWins = self.findSubWins() # Nr. of sub-wins post move
+        # remove move from log
+        lastSquare = self.moveLog.pop()
+        self.board[lastSquare[0], lastSquare[1]] = "-"
+        # check if last move scored a sub-win
+        preSubWins = self.findSubWins() # Nr. of sub-wins pre move
+        if len(postSubWins) == len(preSubWins) + 1: # move scored a subwin
+            #remove that sub-win
+            for win in postSubWins:
+                if win not in preSubWins:
+                    self.shellBoard[win[0], win[1]] = "-"
+
+
+
+
+
     """ 
     Check if someone has won the game overall (shell tic-tac-toe winner) 
     or if there are no squares left
@@ -117,19 +140,43 @@ class GameState():
     def checkWin(self, board):
         # Vertical Win 
         for col in range(3):
-            if board[0,col] == board[1,col] and board[0,col] == board[2,col] and board[0,col]!= "-":
+            if board[0,col] == board[1,col] and board[0,col] == board[2,col] and board[0,col] != "-":
                 return True
         # Horizontal Win
         for row in range(3):
-            if board[row,0] == board[row,1] and board[row,0] == board[row,2] and board[row,0]!= "-":
+            if board[row,0] == board[row,1] and board[row,0] == board[row,2] and board[row,0] != "-":
                 return True
-        # Diagonal Win
-        if board[0,0] == board[1,1] and board[0,0] == board[2,2] and board[0,0]!= "-":
+        # Diagonal Win - Top Left to Bottom Right
+        if board[0,0] == board[1,1] and board[0,0] == board[2,2] and board[0,0] != "-":
+            return True
+        # Diagonal Win - Bottom Left to Top Right
+        if board[2,0] == board[1,1] and board[1,1] == board[0,2] and board[1,1] != "-":
             return True
         # No Winner
         return False
+    
+    """ 
+    Find all indices where a sub-ttt has a winner
+    This handles the edge case where the new winner does not follow a dictating move
+    """
+    def findSubWins(self):
+        subWinners = []
+        # iterate over all 9 fields to find subwinners
+        for r in range(3):
+            for c in range(3):
+                for pos in self.sub_indices[r, c]:
+                    row = pos[0] ; col = pos[1]
+                    self.tempBoard[row%3, col%3] = self.board[row,col]
+                # now check sub-ttt for win
+                if self.checkWin(self.tempBoard):
+                    subWinners.append((r,c))
+        return subWinners
 
-    """ Check if current sub-tic-tac-toe has a winner """
+
+    """ 
+    Check if current sub-tic-tac-toe has a winner 
+    This Function is not currently used
+    """
     def checkSubWin(self, dictatingMove): 
         #the dictating move determines the follow up sub-ttt
         # Find sub-tic-tac-toe index
