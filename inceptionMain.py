@@ -160,7 +160,7 @@ def main():
     running = True
     gameOver = False # Game is over flag
     validSquares = gs.getValidSquares()
-    player = "o"
+    player = "x"
     while running: 
         for e in p.event.get():
 
@@ -210,7 +210,7 @@ def main():
                 if e.key == p.K_r: # resets the board with 'r' Key
                     gs = inceptionEngine.GameState() # re-initialize game state
                     validSquares = gs.getValidSquares()
-                    player = "o"
+                    player = "x"
                     gameOver = False
         
         screen.fill(bg_color)
