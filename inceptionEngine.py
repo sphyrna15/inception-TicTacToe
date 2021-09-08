@@ -103,7 +103,19 @@ class GameState():
             return freeSquares
         # Otherwise, return valid squares
         return validSquares
+    
+    """ Function to make a move """
+    def makeMove(self, move, player):
+        self.board[move[0], move[1]] = player # Add symbol
+        # Find all the Sub-ttt winners
+        for subWin in self.findSubWins(): 
+            # if the winner is not yet noted, update shellBoard
+            if self.shellBoard[subWin[0], subWin[1]] == "-":
+                self.shellBoard[subWin[0], subWin[1]] = player
+        # append move to moveLog
+        self.moveLog.append((move[0],move[1]))
 
+    
     """
     Function to Undo the previouse move
     """
